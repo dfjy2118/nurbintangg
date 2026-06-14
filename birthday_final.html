@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Selamat Ulang Tahun! 🎂</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+
+#app{
+  width:100%;height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:1.5rem 1rem;position:relative;overflow:hidden;
+  font-family:'Press Start 2P',monospace;
+}
+
+/* ═══ BACKGROUND LAYERS ═══ */
+#bg-night{position:absolute;inset:0;z-index:0;
+  background:linear-gradient(180deg,#010510 0%,#040d24 40%,#071535 70%,#0a1a40 100%);
+  transition:opacity 2.5s ease;}
+#bg-ocean{position:absolute;inset:0;z-index:0;
+  background:linear-gradient(180deg,#001428 0%,#001e3c 35%,#002d55 65%,#003a6b 100%);
+  opacity:0;transition:opacity 2.5s ease;}
+#bg-day{position:absolute;inset:0;z-index:0;
+  background:linear-gradient(180deg,#87CEEB 0%,#b8e8ff 40%,#d4f1ff 70%,#e8f9ff 100%);
+  opacity:0;transition:opacity 2s ease;}
+
+/* Stars canvas — only night */
+#stars-canvas{position:absolute;inset:0;z-index:1;pointer-events:none;transition:opacity 2.5s ease;}
+
+/* Ocean layer — hidden until transition */
+#ocean-layer{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 2.5s ease;overflow:hidden;}
+
+/* ═══ OCEAN ELEMENTS ═══ */
+.bubble{position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,rgba(160,230,255,.4),rgba(100,180,255,.1));
+  border:1px solid rgba(120,200,255,.3);animation:rise linear infinite;}
+@keyframes rise{0%{transform:translateY(0) scale(1);opacity:.7}100%{transform:translateY(-110vh) scale(1.5);opacity:0}}
+.seaweed-wrap{position:absolute;bottom:0;transform-origin:bottom center;animation:sway ease-in-out infinite;}
+@keyframes sway{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+.ray{position:absolute;top:0;width:38px;opacity:.06;
+  background:linear-gradient(180deg,rgba(100,200,255,.9),transparent);
+  animation:ray-sway ease-in-out infinite alternate;}
+@keyframes ray-sway{0%{transform:skewX(-8deg)}100%{transform:skewX(8deg)}}
+.fish-el{position:absolute;pointer-events:none;}
+@keyframes swim-r{0%{left:-80px}100%{left:110vw}}
+@keyframes swim-l{0%{right:-80px}100%{right:110vw}}
+/* bintang laut HANYA di ocean layer */
+.sf-el{
+  position:absolute;pointer-events:none;
+  animation:sf-float ease-in-out infinite;
+  color:#ffd700 !important;
+  -webkit-text-fill-color:#ffd700 !important;
+  filter:drop-shadow(0 0 3px rgba(255,215,0,.7)) sepia(1) saturate(5) hue-rotate(5deg);
+}
+@keyframes sf-float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(180deg)}}
+.floor-rock{position:absolute;bottom:0;border-radius:50% 50% 0 0;}
+
+/* ═══ CATS on puzzle page ═══ */
+#cat-layer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;}
+.cat-wrap{position:absolute;bottom:0;}
+
+/* yellow cat walk */
+@keyframes cat-walk-r{
+  0%   {left:-120px;transform:scaleX(1);}
+  48%  {left:calc(100vw + 120px);transform:scaleX(1);}
+  48.1%{left:calc(100vw + 120px);transform:scaleX(-1);}
+  96%  {left:-120px;transform:scaleX(-1);}
+  100% {left:-120px;transform:scaleX(1);}
+}
+@keyframes cat-walk-l{
+  0%   {right:-120px;transform:scaleX(-1);}
+  48%  {right:calc(100vw + 120px);transform:scaleX(-1);}
+  48.1%{right:calc(100vw + 120px);transform:scaleX(1);}
+  96%  {right:-120px;transform:scaleX(1);}
+  100% {right:-120px;transform:scaleX(-1);}
+}
+/* body bob while walking */
+@keyframes cat-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.cat-body{animation:cat-bob .4s ease-in-out infinite;}
+/* tail wag */
+@keyframes tail-wag{0%,100%{transform-origin:0 50%;transform:rotate(20deg)}50%{transform-origin:0 50%;transform:rotate(-20deg)}}
+.cat-tail{animation:tail-wag .5s ease-in-out infinite;}
+/* ear twitch */
+@keyframes ear-twitch{0%,90%,100%{transform:rotate(0deg)}95%{transform:rotate(-15deg)}}
+.cat-ear{animation:ear-twitch 3s ease-in-out infinite;}
+/* eye blink */
+@keyframes eye-blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(0.1)}}
+.cat-eye{animation:eye-blink 4s ease-in-out infinite;}
+.page{width:100%;max-width:540px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:10;
+  opacity:1;transition:opacity 0.35s ease;}
+.page.hidden{opacity:0;pointer-events:none;position:absolute;}
+
+/* ═══ TEXT ═══ */
+.t-night{font-size:14px;color:#fff;text-align:center;line-height:2;margin-bottom:.5rem;
+  text-shadow:0 0 22px #ffd700,0 0 8px #ffd700;}
+.s-night{font-size:7px;color:#c8d8ff;text-align:center;line-height:2.6;margin-bottom:1.4rem;}
+.t-day{font-size:12px;color:#003355;text-align:center;line-height:2;margin-bottom:.5rem;}
+.s-day{font-size:7px;color:#2255aa;text-align:center;line-height:2.6;margin-bottom:1.2rem;}
+.puzz-t{font-size:9px;color:#ffd700;text-align:center;line-height:1.9;margin-bottom:.3rem;
+  text-shadow:0 0 12px #ffd700;}
+.puzz-s{font-size:6px;color:#9090c0;text-align:center;line-height:2.4;margin-bottom:.8rem;}
+
+/* ═══ BUTTONS ═══ */
+.btn{font-family:'Press Start 2P',monospace;background:#ffd700;color:#1a0800;border:none;
+  padding:11px 24px;border-radius:3px;font-size:9px;cursor:pointer;
+  box-shadow:4px 4px 0 #c8a800;transition:transform .1s,box-shadow .1s;}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #c8a800;}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #c8a800;}
+.btn-restart{font-family:'Press Start 2P',monospace;background:#ff6b9d;color:#fff;border:none;
+  padding:11px 22px;border-radius:3px;font-size:9px;cursor:pointer;
+  box-shadow:4px 4px 0 #cc3366;transition:transform .1s;}
+.btn-restart:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #cc3366;}
+
+/* ═══ CAKE ═══ */
+#cake-svg text{font-family:'Press Start 2P',monospace;}
+#mic-status{font-size:7px;color:#c8d8ff;margin-top:.7rem;text-align:center;min-height:20px;line-height:2.4;}
+#blow-wrap{width:170px;height:10px;background:rgba(255,255,255,.1);
+  border:2px solid rgba(255,215,100,.35);border-radius:2px;
+  margin:.5rem auto 0;overflow:hidden;display:none;}
+#blow-meter{height:100%;width:0%;background:#ffd700;}
+
+/* ═══ PHOTO UPLOAD (intro page) ═══ */
+.photo-upload-wrap{margin-bottom:1.3rem;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.photo-upload-label{font-size:6px;color:#9090c0;line-height:2;}
+.photo-slot{
+  width:130px;height:130px;border-radius:3px;overflow:hidden;
+  border:2px dashed rgba(255,215,0,.45);background:rgba(5,10,30,.7);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:border-color .2s;position:relative;
+}
+.photo-slot:hover{border-color:#ffd700;}
+.photo-slot .ph-icon{font-size:32px;color:rgba(255,215,0,.4);pointer-events:none;}
+.photo-slot img{width:100%;height:100%;object-fit:cover;display:none;pointer-events:none;}
+.photo-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.photo-slot.has-img .ph-icon{display:none;}
+.photo-slot.has-img img{display:block;}
+
+/* ═══ GRID ═══ */
+#grid-container{display:grid;gap:4px;margin-bottom:.9rem;}
+.cell{width:40px;height:40px;border-radius:3px;transition:background .2s;}
+.cell.empty{background:transparent;border:none;}
+.cell.star-filled{background:#ffd700;border:2px solid #c8a800;box-shadow:0 0 6px rgba(255,215,0,.5);}
+.cell.missing-slot{background:rgba(255,215,0,.08);border:2px dashed rgba(255,215,0,.45);}
+.cell.drag-over{background:rgba(255,215,0,.32);border:2px solid #ffd700;animation:glow .65s infinite alternate;}
+.cell.placed{background:#ffd700;border:2px solid #c8a800;box-shadow:0 0 14px rgba(255,215,0,.9);animation:pop .35s ease;}
+@keyframes glow{from{box-shadow:0 0 4px #ffd700}to{box-shadow:0 0 22px #ffd700}}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+/* ═══ PIECES ═══ */
+#piece-area{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:.9rem;}
+.piece-block{padding:12px;border-radius:3px;
+  border:2px solid rgba(255,215,0,.28);background:rgba(5,10,30,.75);
+  cursor:grab;user-select:none;box-shadow:3px 3px 0 rgba(255,215,0,.12);
+  transition:border-color .15s,transform .1s,opacity .3s;}
+.piece-block:hover{transform:translate(-2px,-2px);border-color:rgba(255,215,0,.6);}
+.piece-block.selected-piece{border-color:#ffd700;background:rgba(255,215,0,.15);}
+.piece-block.wrong{animation:shake .4s ease;border-color:#e24b4a;}
+.piece-block.gone{opacity:0;pointer-events:none;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.mini-grid{display:grid;gap:3px;}
+.mc{width:13px;height:13px;border-radius:1px;}
+.mc.on{background:#ffd700;border:1px solid #c8a800;}
+.mc.off{background:transparent;}
+
+/* ═══ DRAG GHOST ═══ */
+#drag-ghost{position:fixed;pointer-events:none;z-index:9999;display:none;
+  opacity:.9;transform:translate(-50%,-50%);}
+#drag-ghost .mc{width:16px;height:16px;}
+#drag-ghost .mc.on{background:#ffd700;border:1px solid #c8a800;}
+#drag-ghost .mini-grid{gap:3px;}
+
+/* ═══ REVEAL ═══ */
+#reveal-photo-wrap{
+  width:240px;height:240px;border-radius:4px;overflow:hidden;
+  border:4px solid #ffd700;margin:0 auto 1rem;
+  background:#fff8e7;display:flex;align-items:center;justify-content:center;
+  animation:revealPop .75s ease;box-shadow:6px 6px 0 #c8a800;position:relative;
+}
+#reveal-photo-wrap img{width:100%;height:100%;object-fit:cover;}
+.ph-empty{text-align:center;padding:1rem;}
+@keyframes revealPop{0%{transform:scale(.25);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.reveal-note{font-size:7px;color:#003355;background:rgba(200,240,255,.9);
+  border-radius:3px;padding:12px 16px;max-width:290px;margin:0 auto .9rem;
+  line-height:2.6;border:2px solid #40c8ff;box-shadow:4px 4px 0 #9dd4f0;text-align:center;}
+
+/* ═══ FIREWORKS ═══ */
+canvas#fw{position:fixed;inset:0;pointer-events:none;display:none;z-index:999;}
+
+/* ═══ MUSIC BTN ═══ */
+#music-btn{position:fixed;bottom:14px;right:14px;z-index:50;
+  font-family:'Press Start 2P',monospace;font-size:7px;
+  background:rgba(5,10,30,.85);color:#c8d8ff;
+  border:2px solid rgba(200,210,255,.25);border-radius:3px;
+  padding:7px 10px;cursor:pointer;transition:all .2s;}
+#music-btn:hover{color:#fff;border-color:#ffd700;}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="fw"></canvas>
+
+  <div id="bg-night"></div>
+  <div id="bg-ocean"></div>
+  <div id="bg-day"></div>
+  <canvas id="stars-canvas"></canvas>
+  <div id="ocean-layer"></div>
+  <div id="cat-layer" style="display:none;"></div>
+
+  <!-- ══ PAGE 0: Tiup Lilin ══ -->
+  <div class="page" id="page-candle">
+    <p class="t-night">Tiup lilinnya! ✨</p>
+    <p class="s-night">Tiup mic-mu untuk<br>memadamkan semua lilin</p>
+    <div style="margin-bottom:.8rem">
+      <svg id="cake-svg" width="205" height="205" viewBox="0 0 220 215">
+        <rect x="12" y="132" width="196" height="68" rx="11" fill="#e8789a"/>
+        <rect x="12" y="132" width="196" height="23" rx="9" fill="#f5a0bc"/>
+        <circle cx="48"  cy="165" r="5.5" fill="#fff" opacity=".5"/>
+        <circle cx="80"  cy="175" r="4"   fill="#fff" opacity=".4"/>
+        <circle cx="110" cy="162" r="6"   fill="#fff" opacity=".5"/>
+        <circle cx="145" cy="173" r="4"   fill="#fff" opacity=".4"/>
+        <circle cx="178" cy="163" r="5"   fill="#fff" opacity=".5"/>
+        <rect x="33" y="96" width="154" height="42" rx="9" fill="#f5a0bc"/>
+        <rect x="33" y="96" width="154" height="17" rx="7" fill="#ffccdb"/>
+        <path d="M33 105 Q52 93 70 105 Q88 117 106 105 Q124 93 142 105 Q160 117 178 105" fill="none" stroke="#fff" stroke-width="2" opacity=".5"/>
+        <rect x="61"  y="74" width="13" height="26" rx="2.5" fill="#ffccdb"/>
+        <rect x="103" y="67" width="13" height="33" rx="2.5" fill="#ffd6e8"/>
+        <rect x="145" y="74" width="13" height="26" rx="2.5" fill="#ffccdb"/>
+        <text id="age-old" x="110" y="126" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="12" fill="#fff" opacity="1">18</text>
+        <text id="age-new" x="110" y="126" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="12" fill="#fff" opacity="0">19</text>
+        <g id="flames">
+          <ellipse id="fl0"  cx="67"  cy="68" rx="6"   ry="10" fill="#ffd700"/>
+          <ellipse id="fl0i" cx="67"  cy="70" rx="3"   ry="6"  fill="#fffde7"/>
+          <ellipse id="fl1"  cx="109" cy="61" rx="6.5" ry="11" fill="#ffd700"/>
+          <ellipse id="fl1i" cx="109" cy="63" rx="3.5" ry="7"  fill="#fffde7"/>
+          <ellipse id="fl2"  cx="151" cy="68" rx="6"   ry="10" fill="#ffd700"/>
+          <ellipse id="fl2i" cx="151" cy="70" rx="3"   ry="6"  fill="#fffde7"/>
+        </g>
+        <g id="smoke-group"></g>
+      </svg>
+    </div>
+    <button class="btn" id="mic-btn" onclick="startMic()">[ Izinkan Mikrofon ]</button>
+    <div id="mic-status"></div>
+    <div id="blow-wrap"><div id="blow-meter"></div></div>
+  </div>
+
+  <!-- ══ PAGE 1: Intro (Night Sky) — Upload Foto Awal ══ -->
+  <div class="page hidden" id="page-intro">
+    <div style="font-size:44px;margin-bottom:.6rem;filter:drop-shadow(0 0 20px #ffd700)">⭐</div>
+    <p class="t-night">Selamat<br>Ulang Tahun!</p>
+    <p class="s-night">Upload foto dulu~</p>
+    <div class="photo-upload-wrap">
+      <div class="photo-upload-label">📷 Foto kamu (tampil saat puzzle)</div>
+      <div class="photo-slot" id="slot1" onclick="document.getElementById('inp1').click()">
+        <span class="ph-icon">📷</span>
+        <img id="img1" src="" alt=""/>
+        <input type="file" id="inp1" accept="image/*" onchange="loadPhoto(1,this)" onclick="event.stopPropagation()"/>
+      </div>
+    </div>
+    <button class="btn" onclick="goTo('page-puzzle')">[ Mulai Puzzle ]</button>
+  </div>
+
+  <!-- ══ PAGE 2: Puzzle (Night Sky + foto awal) ══ -->
+  <div class="page hidden" id="page-puzzle">
+    <p class="puzz-t">Lengkapi<br>Bintangnya! ⭐</p>
+    <p class="puzz-s">Drag potongan ke tempat kosong</p>
+
+    <!-- Foto awal tampil di sini, tanpa bintang laut -->
+    <div id="puzzle-photo-wrap" style="margin-bottom:.8rem;display:none;">
+      <img id="puzzle-photo" src=""
+        style="width:100px;height:100px;object-fit:cover;border-radius:3px;border:2px solid rgba(255,215,0,.5);display:block;"/>
+    </div>
+
+    <div id="grid-container"></div>
+    <div id="piece-area"></div>
+  </div>
+
+  <!-- ══ PAGE 3: Reveal (Ocean + Hadiah) ══ -->
+  <div class="page hidden" id="page-reveal">
+    <p class="t-day">Yeay! Berhasil! 🎉</p>
+    <p class="s-day">Hadiahmu ada di sini~ 𓇼</p>
+
+    <!-- Upload foto hadiah langsung di sini -->
+    <div id="reveal-photo-wrap" onclick="document.getElementById('inp2').click()" style="cursor:pointer;">
+      <div class="ph-empty" id="reveal-empty">
+        <div style="font-size:44px;margin-bottom:8px">🎁</div>
+        <p style="font-family:'Press Start 2P',monospace;font-size:6px;color:#aaa;line-height:2.2">Ketuk untuk<br>upload foto hadiah</p>
+      </div>
+      <img id="reveal-img" src="" style="display:none"/>
+      <input type="file" id="inp2" accept="image/*" onchange="loadPhoto(2,this)" style="display:none"/>
+    </div>
+
+    <p class="reveal-note">Happy Birthday! 🎂<br>Semoga selalu bahagia ✨</p>
+    <button class="btn-restart" onclick="restartAll()">[ ↺ Ulangi ]</button>
+  </div>
+
+</div>
+
+<button id="music-btn" onclick="toggleMusic()">♪ ON</button>
+<div id="drag-ghost"><div class="mini-grid" id="ghost-inner"></div></div>
+
+<script>
+/* ══════════════════════════════════════
+   PHOTO
+══════════════════════════════════════ */
+let photoSrc1 = '';
+
+function loadPhoto(n, input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (n === 1) {
+      photoSrc1 = e.target.result;
+      document.getElementById('img1').src = photoSrc1;
+      document.getElementById('slot1').classList.add('has-img');
+    } else {
+      document.getElementById('reveal-img').src = e.target.result;
+      document.getElementById('reveal-img').style.display = 'block';
+      document.getElementById('reveal-empty').style.display = 'none';
+      document.getElementById('reveal-photo-wrap').style.cursor = 'default';
+    }
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function applyPhoto1() {
+  if (photoSrc1) {
+    document.getElementById('puzzle-photo').src = photoSrc1;
+    document.getElementById('puzzle-photo-wrap').style.display = 'block';
+  }
+}
+
+/* ══════════════════════════════════════
+   STARS — langit malam, tanpa bintang laut
+══════════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  const stars = [];
+  for (let i = 0; i < 160; i++) {
+    stars.push({
+      x: Math.random(), y: Math.random(),
+      r: 0.5 + Math.random() * 2.2,
+      base: 0.55 + Math.random() * 0.45,
+      speed: 0.35 + Math.random() * 1.3,
+      phase: Math.random() * Math.PI * 2,
+      col: Math.random() < .15 ? '#ffd9a0' : Math.random() < .1 ? '#a0c8ff' : '#ffffff'
+    });
+  }
+  function draw(ts) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      const op = s.base + Math.sin(ts / 1000 * s.speed + s.phase) * (1 - s.base) * 0.85;
+      ctx.beginPath();
+      ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.col;
+      ctx.globalAlpha = Math.max(0, Math.min(1, op));
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ══════════════════════════════════════
+   OCEAN — bintang laut 𓇼 HANYA di sini
+══════════════════════════════════════ */
+(function () {
+  const layer = document.getElementById('ocean-layer');
+
+  // Light rays
+  for (let i = 0; i < 5; i++) {
+    const r = document.createElement('div'); r.className = 'ray';
+    r.style.cssText = `left:${4 + i * 18}%;height:${30 + Math.random() * 44}vh;animation-duration:${3 + Math.random() * 3}s;animation-delay:${Math.random() * 3}s;`;
+    layer.appendChild(r);
+  }
+
+  // Bubbles
+  for (let i = 0; i < 24; i++) {
+    const b = document.createElement('div'); b.className = 'bubble';
+    const s = 5 + Math.random() * 18;
+    b.style.cssText = `width:${s}px;height:${s}px;left:${Math.random() * 100}%;bottom:${Math.random() * 45}%;animation-duration:${7 + Math.random() * 12}s;animation-delay:${Math.random() * 10}s;`;
+    layer.appendChild(b);
+  }
+
+  // Rocks
+  ['#1a3a5c','#0d2a44','#153350','#102040','#0a1830'].forEach((col, i) => {
+    const rock = document.createElement('div'); rock.className = 'floor-rock';
+    rock.style.cssText = `width:${58 + Math.random() * 75}px;height:${16 + Math.random() * 26}px;left:${i * 20 + Math.random() * 8}%;background:${col};`;
+    layer.appendChild(rock);
+  });
+
+  // Seaweed
+  const swC = ['#0d6040','#1a7a4a','#0a5035','#2aaa55','#16904a'];
+  for (let i = 0; i < 9; i++) {
+    const w = document.createElement('div'); w.className = 'seaweed-wrap';
+    w.style.cssText = `left:${3 + i * 10.5}%;animation-duration:${2.2 + Math.random() * 2}s;animation-delay:${Math.random() * 2}s;`;
+    const h = 36 + Math.random() * 34;
+    w.innerHTML = `<svg width="16" height="${h}" viewBox="0 0 16 ${h}"><path d="M8 ${h} Q${2 + Math.random() * 12} ${h * .7} 8 ${h * .5} Q${2 + Math.random() * 12} ${h * .25} 8 0" stroke="${swC[i % swC.length]}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+    layer.appendChild(w);
+  }
+
+  // ── Bintang laut 𓇼 ONLY here ──
+  for (let i = 0; i < 9; i++) {
+    const sf = document.createElement('div'); sf.className = 'sf-el';
+    sf.textContent = '𓇼';
+    const sz = 14 + Math.random() * 16;
+    sf.style.cssText = `font-size:${sz}px;left:${4 + i * 10.5}%;top:${12 + Math.random() * 68}%;animation-duration:${3.5 + Math.random() * 4}s;animation-delay:${Math.random() * 4}s;`;
+    layer.appendChild(sf);
+  }
+
+  // Fish
+  const fSVG = [
+    w => `<svg width="${w}" height="${Math.round(w * .55)}" viewBox="0 0 50 28"><polygon points="2,14 13,5 13,23" fill="#ffc800"/><ellipse cx="32" cy="14" rx="18" ry="11" fill="#ffd700"/><ellipse cx="38" cy="11" rx="2.5" ry="2.5" fill="#fff"/><circle cx="38.8" cy="11" r="1.3" fill="#222"/><path d="M18 9 Q24 14 18 19" stroke="#c8a800" stroke-width="1.3" fill="none"/></svg>`,
+    w => `<svg width="${w}" height="${Math.round(w * .55)}" viewBox="0 0 50 28"><polygon points="2,14 13,5 13,23" fill="#e05590"/><ellipse cx="32" cy="14" rx="18" ry="11" fill="#ff8fc0"/><ellipse cx="38" cy="11" rx="2.5" ry="2.5" fill="#fff"/><circle cx="38.8" cy="11" r="1.3" fill="#222"/><path d="M18 9 Q24 14 18 19" stroke="#e05590" stroke-width="1.3" fill="none"/></svg>`,
+    w => `<svg width="${w}" height="${Math.round(w * .55)}" viewBox="0 0 50 28"><polygon points="2,14 13,5 13,23" fill="#888"/><ellipse cx="32" cy="14" rx="18" ry="11" fill="#bbb"/><ellipse cx="38" cy="11" rx="2.5" ry="2.5" fill="#fff"/><circle cx="38.8" cy="11" r="1.3" fill="#222"/><path d="M18 9 Q24 14 18 19" stroke="#777" stroke-width="1.3" fill="none"/></svg>`,
+  ];
+  [{t:0,s:32,top:14,d:13,dl:0,dir:'r'},{t:1,s:24,top:33,d:10,dl:3,dir:'l'},{t:2,s:28,top:52,d:15,dl:1,dir:'r'},
+   {t:0,s:18,top:70,d:9,dl:5,dir:'l'},{t:1,s:36,top:24,d:12,dl:7,dir:'r'},{t:2,s:22,top:62,d:14,dl:2,dir:'l'},
+   {t:0,s:16,top:80,d:10,dl:9,dir:'r'},{t:1,s:30,top:44,d:15,dl:4,dir:'l'},{t:2,s:40,top:12,d:11,dl:6,dir:'r'}
+  ].forEach((fd) => {
+    const f = document.createElement('div'); f.className = 'fish-el';
+    f.innerHTML = fSVG[fd.t](fd.s);
+    const flip = fd.dir === 'l' ? 'scaleX(-1)' : 'scaleX(1)';
+    const anim = fd.dir === 'r' ? 'swim-r' : 'swim-l';
+    const sp   = fd.dir === 'r' ? 'left' : 'right';
+    f.style.cssText = `top:${fd.top}%;${sp}:-80px;transform:${flip};animation:${anim} ${fd.d}s ${fd.dl}s linear infinite;`;
+    layer.appendChild(f);
+  });
+})();
+
+/* ══════════════════════════════════════
+   MUSIC
+══════════════════════════════════════ */
+let mACtx = null, mGain = null, mPlaying = false, mTimeout = null, mIdx = 0;
+const MEL = [523.25,659.25,783.99,880,1046.5,880,783.99,659.25,523.25,587.33,698.46,880,783.99,698.46,587.33,523.25,440,523.25,659.25,783.99,659.25,523.25,440,392,440,523.25,659.25,587.33,523.25,392,349.23,392];
+function initMusic() { if (mACtx) return; mACtx = new (window.AudioContext || window.webkitAudioContext)(); mGain = mACtx.createGain(); mGain.gain.value = .16; mGain.connect(mACtx.destination); }
+function playNote(f, w, d) {
+  const o = mACtx.createOscillator(), e = mACtx.createGain();
+  o.type = 'sine'; o.frequency.value = f;
+  e.gain.setValueAtTime(0, w); e.gain.linearRampToValueAtTime(.55, w + .04); e.gain.exponentialRampToValueAtTime(.001, w + d * .88);
+  o.connect(e); e.connect(mGain); o.start(w); o.stop(w + d);
+  const o2 = mACtx.createOscillator(), e2 = mACtx.createGain();
+  o2.type = 'sine'; o2.frequency.value = f * 1.5;
+  e2.gain.setValueAtTime(0, w); e2.gain.linearRampToValueAtTime(.14, w + .05); e2.gain.exponentialRampToValueAtTime(.001, w + d * .8);
+  o2.connect(e2); e2.connect(mGain); o2.start(w); o2.stop(w + d);
+}
+function scheduleMelody() {
+  if (!mPlaying) return;
+  const step = .42, now = mACtx.currentTime;
+  for (let i = 0; i < 4; i++) playNote(MEL[(mIdx + i) % MEL.length], now + i * step, step * .85);
+  mIdx = (mIdx + 4) % MEL.length;
+  mTimeout = setTimeout(scheduleMelody, 4 * step * 1000 - 80);
+}
+function startMusic() { initMusic(); if (mACtx.state === 'suspended') mACtx.resume(); mPlaying = true; scheduleMelody(); document.getElementById('music-btn').textContent = '♪ ON'; }
+function stopMusic() { mPlaying = false; clearTimeout(mTimeout); document.getElementById('music-btn').textContent = '♪ OFF'; }
+function toggleMusic() { if (mPlaying) stopMusic(); else startMusic(); }
+
+/* ══════════════════════════════════════
+   TRANSITIONS
+══════════════════════════════════════ */
+function transitionToOcean() {
+  document.getElementById('stars-canvas').style.opacity = '0';
+  document.getElementById('bg-night').style.opacity = '0';
+  document.getElementById('bg-ocean').style.opacity = '1';
+  document.getElementById('ocean-layer').style.opacity = '1';
+}
+function transitionToDay() {
+  document.getElementById('bg-ocean').style.opacity = '0';
+  document.getElementById('ocean-layer').style.opacity = '.35';
+  document.getElementById('bg-day').style.opacity = '1';
+}
+function resetTransitions() {
+  ['stars-canvas','bg-night'].forEach(id => document.getElementById(id).style.opacity = '1');
+  ['bg-ocean','ocean-layer','bg-day'].forEach(id => document.getElementById(id).style.opacity = '0');
+}
+
+/* ══════════════════════════════════════
+   PUZZLE
+══════════════════════════════════════ */
+const COLS = 9, ROWS = 9;
+const STAR = [
+  [0,0,0,0,1,0,0,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,1,1,1,0,0,0],
+  [0,1,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,0],
+  [0,0,1,1,1,1,1,0,0],[0,0,0,1,1,1,0,0,0],[0,0,0,0,1,0,0,0,0],
+];
+const MISSING = [[6,2],[6,3],[7,3],[8,4]];
+const PIECES = [
+  {id:0, correct:false, cells:[[0,0],[0,1],[1,1],[1,2]]},
+  {id:1, correct:true,  cells:[[0,0],[0,1],[1,1],[2,2]]},
+  {id:2, correct:false, cells:[[0,0],[0,1],[0,2],[1,1]]},
+];
+let dragId = null, selId = null;
+let audioCtxMic = null, analyserMic = null, micStream = null, blown = 0, afMic = null;
+
+function buildGrid() {
+  const c = document.getElementById('grid-container');
+  c.style.gridTemplateColumns = `repeat(${COLS},40px)`;
+  c.style.gridTemplateRows    = `repeat(${ROWS},40px)`;
+  c.innerHTML = '';
+  for (let r = 0; r < ROWS; r++) for (let cc = 0; cc < COLS; cc++) {
+    const el = document.createElement('div');
+    el.className = 'cell'; el.id = `c-${r}-${cc}`;
+    const isMiss = MISSING.some(([mr,mc]) => mr===r && mc===cc);
+    if (isMiss)              { el.classList.add('missing-slot'); setupDrop(el, r, cc); }
+    else if (STAR[r][cc]===1){ el.classList.add('star-filled'); }
+    else                     { el.classList.add('empty'); }
+    c.appendChild(el);
+  }
+}
+function setupDrop(el, r, cc) {
+  el.addEventListener('dragover',  e => { e.preventDefault(); el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop',      e => { e.preventDefault(); el.classList.remove('drag-over'); tryDrop(r, cc); });
+}
+function buildPieces() {
+  const cont = document.getElementById('piece-area'); cont.innerHTML = '';
+  PIECES.forEach(p => {
+    const btn = document.createElement('div');
+    btn.className = 'piece-block'; btn.id = `p-${p.id}`; btn.draggable = true;
+    btn.addEventListener('dragstart', e => { dragId = p.id; buildGhost(p); e.dataTransfer.setDragImage(new Image(), 0, 0); e.dataTransfer.effectAllowed = 'move'; });
+    btn.addEventListener('drag',      e => { if (e.clientX) moveGhost(e.clientX, e.clientY); });
+    btn.addEventListener('dragend',   () => hideGhost());
+    btn.addEventListener('touchstart',e => { dragId = p.id; buildGhost(p); moveGhost(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+    btn.addEventListener('touchmove', e => { e.preventDefault(); moveGhost(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
+    btn.addEventListener('touchend',  e => {
+      e.preventDefault(); hideGhost();
+      const t = e.changedTouches[0];
+      const tgt = document.elementFromPoint(t.clientX, t.clientY);
+      if (tgt) { const m = tgt.id.match(/^c-(\d+)-(\d+)$/); if (m) tryDrop(+m[1], +m[2]); }
+    }, {passive:false});
+    btn.addEventListener('click', () => selectPiece(p.id));
+    const maxR = Math.max(...p.cells.map(([r]) => r));
+    const maxC = Math.max(...p.cells.map(([,c]) => c));
+    const g = document.createElement('div');
+    g.className = 'mini-grid';
+    g.style.gridTemplateColumns = `repeat(${maxC+1},13px)`;
+    g.style.gridTemplateRows    = `repeat(${maxR+1},13px)`;
+    for (let r=0;r<=maxR;r++) for (let c=0;c<=maxC;c++) {
+      const m = document.createElement('div');
+      m.className = 'mc ' + (p.cells.some(([pr,pc]) => pr===r && pc===c) ? 'on' : 'off');
+      g.appendChild(m);
+    }
+    btn.appendChild(g); cont.appendChild(btn);
+  });
+}
+function selectPiece(id) {
+  selId = id;
+  document.querySelectorAll('.piece-block').forEach(e => e.classList.remove('selected-piece'));
+  document.getElementById(`p-${id}`)?.classList.add('selected-piece');
+  clearSlots();
+  if (PIECES[id].correct) MISSING.forEach(([r,c]) => { document.getElementById(`c-${r}-${c}`)?.classList.replace('missing-slot','drag-over'); });
+}
+function clearSlots() {
+  MISSING.forEach(([r,c]) => {
+    const el = document.getElementById(`c-${r}-${c}`);
+    if (el && !el.classList.contains('placed')) { el.className = 'cell missing-slot'; setupDrop(el,r,c); }
+  });
+}
+function buildGhost(p) {
+  const maxR = Math.max(...p.cells.map(([r]) => r)), maxC = Math.max(...p.cells.map(([,c]) => c));
+  const g = document.getElementById('ghost-inner');
+  g.style.gridTemplateColumns = `repeat(${maxC+1},16px)`; g.style.gridTemplateRows = `repeat(${maxR+1},16px)`;
+  g.innerHTML = '';
+  for (let r=0;r<=maxR;r++) for (let c=0;c<=maxC;c++) {
+    const m = document.createElement('div');
+    m.className = 'mc ' + (p.cells.some(([pr,pc]) => pr===r && pc===c) ? 'on' : 'off');
+    g.appendChild(m);
+  }
+  document.getElementById('drag-ghost').style.display = 'block';
+}
+function moveGhost(x, y) { const gh = document.getElementById('drag-ghost'); gh.style.left = x+'px'; gh.style.top = y+'px'; }
+function hideGhost() { document.getElementById('drag-ghost').style.display = 'none'; }
+function tryDrop(r, cc) {
+  const pid = dragId !== null ? dragId : selId;
+  if (pid === null) return;
+  dragId = null; selId = null;
+  if (!MISSING.some(([mr,mc]) => mr===r && mc===cc)) return;
+  const p = PIECES[pid];
+  if (!p.correct) {
+    const b = document.getElementById(`p-${pid}`); b?.classList.add('wrong');
+    setTimeout(() => b?.classList.remove('wrong'), 450);
+    clearSlots(); return;
+  }
+  doPlace(pid);
+}
+function doPlace(pid) {
+  MISSING.forEach(([mr,mc], i) => {
+    const el = document.getElementById(`c-${mr}-${mc}`);
+    if (el) setTimeout(() => { el.className = 'cell placed'; }, i * 90);
+  });
+  document.getElementById(`p-${pid}`)?.classList.add('gone');
+  clearSlots();
+  launchFireworks();
+  setTimeout(() => transitionToOcean(), 800);
+  setTimeout(() => transitionToDay(), 3200);
+  setTimeout(() => goTo('page-reveal'), 3800);
+}
+
+/* ══════════════════════════════════════
+   RESTART
+══════════════════════════════════════ */
+function restartAll() {
+  // reset semua halaman opacity dulu
+  document.querySelectorAll('.page').forEach(p => { p.style.opacity = '0'; p.classList.add('hidden'); });
+  resetTransitions();
+  blown = 0; dragId = null; selId = null;
+  buildGrid(); buildPieces();
+  // reset puzzle photo
+  document.getElementById('puzzle-photo-wrap').style.display = 'none';
+  // reset reveal
+  document.getElementById('reveal-img').style.display = 'none';
+  document.getElementById('reveal-img').src = '';
+  document.getElementById('reveal-empty').style.display = 'block';
+  document.getElementById('reveal-photo-wrap').style.cursor = 'pointer';
+  document.getElementById('inp2').value = '';
+  // reset age text
+  document.getElementById('age-old').setAttribute('opacity','1');
+  document.getElementById('age-new').setAttribute('opacity','0');
+  // reset flames
+  [['fl0','fl0i'],['fl1','fl1i'],['fl2','fl2i']].forEach(([a,b]) => {
+    [a,b].forEach(id => { const e = document.getElementById(id); if(e){ e.style.opacity='1'; e.style.transition=''; } });
+  });
+  document.getElementById('smoke-group').innerHTML = '';
+  // reset mic
+  document.getElementById('mic-status').textContent = '';
+  document.getElementById('blow-wrap').style.display = 'none';
+  document.getElementById('blow-meter').style.width = '0%';
+  const micBtn = document.getElementById('mic-btn');
+  micBtn.style.display = 'block'; micBtn.disabled = false; micBtn.textContent = '[ Izinkan Mikrofon ]';
+  const skip = document.getElementById('skip-btn'); if (skip) skip.remove();
+  // music reset
+  clearTimeout(mTimeout); mPlaying = false; mIdx = 0;
+  goTo('page-candle');
+  animateFlames();
+}
+
+/* ══════════════════════════════════════
+   MIC / CANDLE
+══════════════════════════════════════ */
+function startMic() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { document.getElementById('mic-status').textContent = 'Mic tidak tersedia.'; showSkipBtn(); return; }
+  const btn = document.getElementById('mic-btn'); btn.textContent = '[ Menunggu... ]'; btn.disabled = true;
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
+    micStream = stream;
+    audioCtxMic = new (window.AudioContext || window.webkitAudioContext)();
+    analyserMic = audioCtxMic.createAnalyser(); analyserMic.fftSize = 256;
+    audioCtxMic.createMediaStreamSource(stream).connect(analyserMic);
+    btn.style.display = 'none';
+    document.getElementById('blow-wrap').style.display = 'block';
+    document.getElementById('mic-status').textContent = 'Tiup mic-mu!';
+    animateFlames(); detectBlow(); startMusic();
+  }).catch(() => { btn.textContent = '[ Izinkan Mikrofon ]'; btn.disabled = false; document.getElementById('mic-status').textContent = 'Izin ditolak.'; showSkipBtn(); });
+}
+function showSkipBtn() {
+  if (document.getElementById('skip-btn')) return;
+  const b = document.createElement('button'); b.id = 'skip-btn'; b.className = 'btn';
+  b.style.marginTop = '12px'; b.style.fontSize = '8px'; b.textContent = '[ Skip ]'; b.onclick = blowAll;
+  document.getElementById('page-candle').appendChild(b);
+}
+function detectBlow() {
+  const data = new Uint8Array(analyserMic.frequencyBinCount); const meter = document.getElementById('blow-meter'); let hold = 0;
+  function tick() {
+    analyserMic.getByteFrequencyData(data); let s = 0; for (let i=0;i<data.length;i++) s+=data[i]; const avg = s/data.length;
+    meter.style.width = Math.min(100, (avg/40)*100) + '%';
+    if (avg>18 && blown<3) { hold++; if (hold>4) { hold=0; blowNext(); } } else hold = Math.max(0, hold-1);
+    if (blown < 3) afMic = requestAnimationFrame(tick);
+  }
+  afMic = requestAnimationFrame(tick);
+}
+const FID = [['fl0','fl0i'],['fl1','fl1i'],['fl2','fl2i']];
+function blowNext() {
+  if (blown >= 3) return;
+  const [fid,fidi] = FID[blown];
+  [fid,fidi].forEach(id => { const e = document.getElementById(id); if(e) { e.style.transition='opacity .4s'; e.style.opacity='0'; } });
+  addSmoke(blown);
+  const msgs = ['Bagus! Terus tiup!','Hampir! Satu lagi!',''];
+  if (msgs[blown]) document.getElementById('mic-status').textContent = msgs[blown];
+  blown++;
+  if (blown === 3) {
+    cancelAnimationFrame(afMic); if (micStream) micStream.getTracks().forEach(t => t.stop());
+    document.getElementById('blow-wrap').style.display = 'none';
+    ageAnim(); document.getElementById('mic-status').textContent = 'Semua lilin padam! ✨';
+    setTimeout(() => goTo('page-intro'), 1600);
+  }
+}
+function blowAll() {
+  for (let i=blown;i<3;i++) { const[a,b]=FID[i]; [a,b].forEach(id=>{const e=document.getElementById(id);if(e) e.style.opacity='0';}); addSmoke(i); }
+  blown=3; if(afMic) cancelAnimationFrame(afMic); ageAnim(); startMusic(); setTimeout(()=>goTo('page-intro'),1200);
+}
+function ageAnim() {
+  const o=document.getElementById('age-old'),n=document.getElementById('age-new'); let op=1;
+  const iv=setInterval(()=>{ op-=.07; o.setAttribute('opacity',Math.max(0,op).toFixed(2)); n.setAttribute('opacity',Math.min(1,1-op).toFixed(2)); if(op<=0) clearInterval(iv); },40);
+}
+function addSmoke(idx) {
+  const xs=[67,109,151]; const sg=document.getElementById('smoke-group');
+  for(let i=0;i<3;i++){const c=document.createElementNS('http://www.w3.org/2000/svg','ellipse');c.setAttribute('cx',xs[idx]+(Math.random()-.5)*8);c.setAttribute('cy',60);c.setAttribute('rx','4');c.setAttribute('ry','4');c.setAttribute('fill','#cce');c.setAttribute('opacity','.6');sg.appendChild(c);let oy=60,op=.6;const si=setInterval(()=>{oy-=1.6;op-=.038;c.setAttribute('cy',oy);c.setAttribute('opacity',Math.max(0,op).toFixed(2));if(op<=0){clearInterval(si);if(sg.contains(c)) sg.removeChild(c);}},40);}
+}
+function animateFlames() {
+  ['fl0','fl1','fl2'].forEach((id,i) => {
+    const el = document.getElementById(id); if (!el || parseFloat(el.style.opacity||1)<=0) return;
+    let t = i*.6;
+    function a() { t+=.07; const sx=1+Math.sin(t*2.1)*.13,sy=1+Math.cos(t*1.8)*.1; const cx=el.getAttribute('cx'),cy=el.getAttribute('cy'); el.setAttribute('transform',`translate(${cx},${cy}) scale(${sx.toFixed(3)},${sy.toFixed(3)}) translate(-${cx},-${cy})`); if(parseFloat(el.style.opacity||1)>0) requestAnimationFrame(a); }
+    requestAnimationFrame(a);
+  });
+}
+
+/* ══════════════════════════════════════
+   FIREWORKS
+══════════════════════════════════════ */
+function launchFireworks() {
+  const canvas = document.getElementById('fw'); canvas.style.display='block'; canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d'); const colors=['#ffd700','#ffffff','#c8e8ff','#fffde7','#a0c8ff','#40d0ff']; const parts=[];
+  for(let i=0;i<220;i++){const a=Math.random()*Math.PI*2,sp=80+Math.random()*250;parts.push({x:canvas.width/2,y:canvas.height*.38,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-110,color:colors[~~(Math.random()*colors.length)],life:1,decay:.008+Math.random()*.011,size:3+Math.random()*5});}
+  let last=null;(function draw(ts){if(!last) last=ts;const dt=(ts-last)/1000;last=ts;ctx.clearRect(0,0,canvas.width,canvas.height);parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=270*dt;p.life-=p.decay;if(p.life<=0)return;ctx.globalAlpha=p.life;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;if(parts.some(p=>p.life>0)) requestAnimationFrame(draw);else canvas.style.display='none';})(0);
+}
+
+/* ══════════════════════════════════════
+   CATS — kucing kuning & abu berjalan di puzzle page
+══════════════════════════════════════ */
+function buildCatSVG(type) {
+  // type: 'yellow' | 'grey'
+  const body  = type === 'yellow' ? '#f5c842' : '#aaaaaa';
+  const belly = type === 'yellow' ? '#fde98a' : '#cccccc';
+  const inner = type === 'yellow' ? '#f0a500' : '#888888';
+  const nose  = '#ffaaaa';
+  const eye   = '#222';
+  return `<svg width="88" height="64" viewBox="0 0 88 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- tail -->
+  <g class="cat-tail">
+    <path d="M72 44 Q88 36 84 24 Q80 16 74 20 Q78 28 72 36" fill="${body}" stroke="${inner}" stroke-width="1"/>
+  </g>
+  <!-- body -->
+  <ellipse class="cat-body" cx="38" cy="44" rx="26" ry="16" fill="${body}"/>
+  <!-- belly -->
+  <ellipse class="cat-body" cx="36" cy="46" rx="15" ry="10" fill="${belly}"/>
+  <!-- hind legs -->
+  <rect x="12" y="54" width="10" height="10" rx="5" fill="${body}"/>
+  <rect x="52" y="54" width="10" height="10" rx="5" fill="${body}"/>
+  <!-- front legs -->
+  <rect x="20" y="54" width="9" height="10" rx="4" fill="${body}"/>
+  <rect x="42" y="54" width="9" height="10" rx="4" fill="${body}"/>
+  <!-- neck -->
+  <ellipse cx="30" cy="30" rx="10" ry="9" fill="${body}"/>
+  <!-- head -->
+  <ellipse cx="22" cy="22" rx="16" ry="14" fill="${body}"/>
+  <!-- inner ear left -->
+  <polygon class="cat-ear" points="8,10 4,0 14,8" fill="${inner}"/>
+  <!-- inner ear right -->
+  <polygon class="cat-ear" points="30,8 36,0 26,8" fill="${inner}"/>
+  <!-- ear left -->
+  <polygon points="8,12 4,2 16,10" fill="${body}"/>
+  <!-- ear right -->
+  <polygon points="30,10 36,2 24,10" fill="${body}"/>
+  <!-- eye white -->
+  <ellipse class="cat-eye" cx="16" cy="22" rx="4" ry="4" fill="white"/>
+  <ellipse class="cat-eye" cx="28" cy="22" rx="4" ry="4" fill="white"/>
+  <!-- pupil -->
+  <ellipse class="cat-eye" cx="16" cy="22" rx="2" ry="3" fill="${eye}"/>
+  <ellipse class="cat-eye" cx="28" cy="22" rx="2" ry="3" fill="${eye}"/>
+  <!-- eye shine -->
+  <circle cx="17" cy="21" r="1" fill="white"/>
+  <circle cx="29" cy="21" r="1" fill="white"/>
+  <!-- nose -->
+  <ellipse cx="22" cy="28" rx="2.5" ry="1.8" fill="${nose}"/>
+  <!-- mouth -->
+  <path d="M20 30 Q22 33 24 30" fill="none" stroke="${inner}" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- whiskers left -->
+  <line x1="8" y1="27" x2="18" y2="28" stroke="${inner}" stroke-width="0.8" opacity=".7"/>
+  <line x1="6" y1="30" x2="18" y2="30" stroke="${inner}" stroke-width="0.8" opacity=".7"/>
+  <!-- whiskers right -->
+  <line x1="26" y1="28" x2="36" y2="27" stroke="${inner}" stroke-width="0.8" opacity=".7"/>
+  <line x1="26" y1="30" x2="38" y2="30" stroke="${inner}" stroke-width="0.8" opacity=".7"/>
+</svg>`;
+}
+
+function initCats() {
+  const layer = document.getElementById('cat-layer');
+  layer.innerHTML = '';
+
+  const cats = [
+    { type:'yellow', bottom:'0px',  dur:14, delay:0   },
+    { type:'grey',   bottom:'0px',  dur:18, delay:5   },
+    { type:'yellow', bottom:'0px',  dur:11, delay:9   },
+  ];
+
+  cats.forEach((cat, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'cat-wrap';
+    wrap.innerHTML = buildCatSVG(cat.type);
+    const dir = i % 2 === 0 ? 'r' : 'l';
+    const anim = dir === 'r' ? 'cat-walk-r' : 'cat-walk-l';
+    const startProp = dir === 'r' ? 'left' : 'right';
+    wrap.style.cssText = `bottom:${cat.bottom};${startProp}:-120px;animation:${anim} ${cat.dur}s ${cat.delay}s linear infinite;`;
+    layer.appendChild(wrap);
+  });
+}
+
+function showCats()  { const l = document.getElementById('cat-layer'); l.style.display='block'; }
+function hideCats()  { const l = document.getElementById('cat-layer'); l.style.display='none'; }
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function goTo(id) {
+  // hide cats whenever leaving puzzle
+  if (id !== 'page-puzzle') hideCats();
+
+  const current = document.querySelector('.page:not(.hidden)');
+  const next = document.getElementById(id);
+  if (current && current !== next) {
+    current.style.opacity = '0';
+    setTimeout(() => {
+      current.classList.add('hidden');
+      next.classList.remove('hidden');
+      requestAnimationFrame(() => { next.style.opacity = '1'; });
+      if (id === 'page-puzzle') { buildGrid(); buildPieces(); applyPhoto1(); initCats(); showCats(); }
+    }, 320);
+  } else {
+    if (current) current.classList.add('hidden');
+    next.classList.remove('hidden');
+    requestAnimationFrame(() => { next.style.opacity = '1'; });
+    if (id === 'page-puzzle') { buildGrid(); buildPieces(); applyPhoto1(); initCats(); showCats(); }
+  }
+}
+
+/* INIT */
+buildGrid(); buildPieces(); animateFlames();
+</script>
+</body>
+</html>
