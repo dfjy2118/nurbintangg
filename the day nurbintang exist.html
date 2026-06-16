@@ -75,15 +75,21 @@ html,body{min-height:100%;overflow-y:auto;}
 /* ═══ FOTO 4:5 ═══ */
 /* Foto 1 — di intro & puzzle (4:5 portrait) */
 .photo-frame-45{
-  width:112px;height:140px;
-  border-radius:3px;overflow:hidden;
-  border:2px solid rgba(255,215,0,.55);
-  background:rgba(5,10,30,.8);
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:.4rem;
+  width: 100%;
+  max-width: 200px; /* Ukuran bingkai kita buat lebih proporsional */
+  aspect-ratio: 4/5; /* Memaksa perbandingan foto potret 4:5 yang pas */
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid rgba(255,215,0,.65);
+  background: rgba(5,10,30,.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: .4rem;
+  position: relative;
 }
-.photo-frame-45 img{width:100%;height:100%;object-fit:cover;display:block;}
-.photo-frame-45 .ph-empty-icon{font-size:28px;color:rgba(255,215,0,.3);}
+.photo-frame-45 img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:2;}
+.photo-frame-45 .ph-empty-icon{font-size:28px;color:rgba(255,215,0,.3);position:absolute;z-index:1;}
 /* Foto 2 — reveal (4:5 portrait) */
 #reveal-photo-inner{
   width:100%;height:100%;
