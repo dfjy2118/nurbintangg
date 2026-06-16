@@ -262,7 +262,6 @@ function applyPhoto1() {
   const img = document.getElementById('puzzle-photo');
   const wrap = document.getElementById('puzzle-photo-wrap');
   const icon = document.getElementById('puzzle-ph-icon');
-  // tampilkan wrap; kalau src ada → tampil foto, kalau tidak → icon
   wrap.style.display = 'flex';
   if (img && img.src && !img.src.endsWith('/birthday_final.html') && img.src !== window.location.href) {
     img.style.display = 'block';
@@ -325,29 +324,11 @@ function checkRevealPhoto() {
 
 /* ══════════════════════════════════════
    MUSIK
-   ─────────────────────────────────────
-   CARA GANTI LAGU DI GITHUB:
-   1. Buka file index.html di GitHub
-   2. Klik ikon pensil ✏️
-   3. Tekan Ctrl+F → cari: GANTI_LAGU
-   4. Ubah MUSIC_SRC ke salah satu pilihan:
-
-   PILIHAN A — File MP3 di GitHub:
-     const MUSIC_SRC = 'lagu.mp3';
-     (upload file .mp3 ke repo, namanya harus sama)
-
-   PILIHAN B — Link MP3 langsung dari internet:
-     const MUSIC_SRC = 'https://example.com/lagu.mp3';
-
-   PILIHAN C — Tidak ada musik:
-     Ubah AUTO_PLAY = false;
-   ─────────────────────────────────────
 ══════════════════════════════════════ */
 
-/* GANTI_LAGU — edit baris di bawah ini */
-const MUSIC_SRC  = '';        // ← isi dengan nama file .mp3 atau URL mp3
-const MUSIC_VOL  = 0.35;      // volume 0.0 – 1.0
-const AUTO_PLAY  = true;      // true = otomatis play saat web dibuka
+const MUSIC_SRC  = '';
+const MUSIC_VOL  = 0.35;
+const AUTO_PLAY  = true;
 
 let bgAudio = null;
 let musicOn  = false;
@@ -369,9 +350,7 @@ function startMusic() {
   bgAudio.play().then(() => {
     musicOn = true;
     document.getElementById('music-btn').textContent = '♪ ON';
-  }).catch(() => {
-    // autoplay blocked — user must interact first, handled by click listener
-  });
+  }).catch(() => {});
 }
 function stopMusic() {
   if (bgAudio) bgAudio.pause();
@@ -380,7 +359,6 @@ function stopMusic() {
 }
 function toggleMusic() { if (musicOn) stopMusic(); else startMusic(); }
 
-// Mulai musik setelah interaksi pertama user (klik apapun)
 function tryAutoPlay() {
   if (AUTO_PLAY && !musicOn) startMusic();
   document.removeEventListener('click', tryAutoPlay);
@@ -422,21 +400,10 @@ const STAR=[
   [0,0,0,0,1,0,0,0,0],
 ];
 
-// 3 slot kosong yang harus diisi — masing-masing milik 1 blok
-// Blok A: sudut kiri bawah bintang (4 sel)
-// Blok B: sudut kanan bawah bintang (4 sel)
-// Blok C: ujung bawah bintang (4 sel) — L shape
-const SLOT_A = [[6,2],[7,2],[7,3],[8,3]];
-const SLOT_B = [[6,6],[7,5],[7,6],[8,5]];
-const SLOT_C = [[7,4],[8,4],[8,5],[8,6]]; // share beberapa sel dgn B
+const MISSING_A = [[6,2],[7,2],[7,3],[8,4]];
+const MISSING_B = [[6,6],[7,5],[7,6],[8,5]];
+const MISSING_C = [[1,3],[1,4],[1,5],[0,4]];
 
-// Sebenarnya bintang punya cukup sel, mari kita gunakan 3 area berbeda
-// Area yang removed dari STAR untuk jadi missing:
-const MISSING_A = [[6,2],[7,2],[7,3],[8,4]];  // kiri bawah
-const MISSING_B = [[6,6],[7,5],[7,6],[8,5]];  // kanan bawah — TAPI cek dulu di STAR
-const MISSING_C = [[1,3],[1,4],[1,5],[0,4]];  // atas tengah
-
-// Validasi: hanya ambil sel yang memang ada di bintang
 function validMissing(cells){
   return cells.filter(([r,c])=>r>=0&&r<ROWS&&c>=0&&c<COLS&&STAR[r][c]===1);
 }
@@ -445,7 +412,6 @@ const MISS_B = validMissing(MISSING_B);
 const MISS_C = validMissing(MISSING_C);
 const ALL_MISSING = [...MISS_A,...MISS_B,...MISS_C];
 
-// Pieces: setiap blok punya cells (relative shape) dan slot yang harus diisi
 const PIECES = [
   { id:0, slotKey:'A', cells:shapeFrom(MISS_A), color:'#ffd700' },
   { id:1, slotKey:'B', cells:shapeFrom(MISS_B), color:'#ffd700' },
@@ -531,10 +497,8 @@ function tryDrop(r,cc){
   const p=PIECES[pid];
   const key=getSlotKey(r,cc);
   if(!key){ shakePiece(pid); return; }
-  if(placed[key]){ return; } // slot sudah terisi
-  // cek apakah piece cocok dengan slot ini
+  if(placed[key]){ return; }
   if(p.slotKey!==key){ shakePiece(pid); return; }
-  // pasang!
   doPlacePiece(pid,key);
 }
 
@@ -551,16 +515,13 @@ function doPlacePiece(pid,key){
     if(el) setTimeout(()=>{ el.className='cell placed'; },i*80);
   });
   document.getElementById(`p-${pid}`)?.classList.add('gone');
-  // Cek apakah semua slot sudah terisi
   if(placed.A&&placed.B&&placed.C){
     setTimeout(()=>triggerClear(),600);
   }
 }
 
-/* Block Blast clear effect — semua sel bintang flash lalu hilang */
 function triggerClear(){
   launchFireworks();
-  // flash seluruh bintang
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     if(STAR[r][c]===1||isMissingCell(r,c)){
       const el=document.getElementById(`c-${r}-${c}`);
@@ -570,7 +531,6 @@ function triggerClear(){
       }
     }
   }
-  // setelah clear selesai → transisi
   setTimeout(()=>transitionToOcean(),1000);
   setTimeout(()=>transitionToDay(),3500);
   setTimeout(()=>goTo('page-reveal'),4200);
@@ -669,7 +629,6 @@ function restartAll(){
   blown=0;dragId=null;selId=null;placed.A=false;placed.B=false;placed.C=false;
   buildGrid();buildPieces();
   document.getElementById('puzzle-photo-wrap').style.display='none';
-  // reveal photo tetap (hardcoded di src)
   document.getElementById('age-old').setAttribute('opacity','1');
   document.getElementById('age-new').setAttribute('opacity','0');
   [['fl0','fl0i'],['fl1','fl1i'],['fl2','fl2i']].forEach(([a,b])=>{[a,b].forEach(id=>{const e=document.getElementById(id);if(e){e.style.opacity='1';e.style.transition='';}});});
