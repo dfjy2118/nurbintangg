@@ -221,7 +221,7 @@ canvas#fw{position:fixed;inset:0;pointer-events:none;display:none;z-index:999;}
       <div id="puzzle-photo-wrap" style="margin-bottom:.5rem;display:none;flex-direction:column;align-items:center;">
         <div class="photo-frame-45">
           <!-- ✏️ GANTI: ubah src="" dengan link foto pertama kamu -->
-          <img id="nurbintang" src="" alt="" onerror="this.style.display='none'"/>
+          <img id="reveal-img" src="nurbintang" alt="imoep" onerror="this.style.display='none'"/>
           <span class="ph-empty-icon" id="puzzle-ph-icon">📷</span>
         </div>
         <div id="puzzle-caption" style="text-align: justify;">aku notis bintang dulu kalau nunggu ira suka banget main game ini, aku baru coba minggu kemarin ternyata cukup sulit..aku main supaya tau aja apa asiknya dan logika dalam codinganku tuk tau sistem gamenya ; terus aku buat blok yang khusus di web ini karna sejujurnya shape bintang susah juga pakai block jadi ya maaf sedapetnya💧</div>
@@ -233,11 +233,11 @@ canvas#fw{position:fixed;inset:0;pointer-events:none;display:none;z-index:999;}
 
   <!-- ══ PAGE 3: Reveal ══ -->
   <div class="page hidden" id="page-reveal">
-    <p class="t-day">Yeay! Berhasil! 🎉</p>
-    <p class="s-day">Hadiahmu ada di sini~ 𓇼</p>
+    <p class="t-day">Yeay! 🎉</p>
+    <p class="s-day">Ini janji hadiahku Claudia 𓇼</p>
     <div id="reveal-photo-wrap">
       <!-- ✏️ GANTI: ubah src="" dengan link foto hadiah kamu -->
-      <img id="gift" src="" alt="hadiah"
+      <img id="reveal-img" src="gift" alt="hadiah"
         onerror="this.style.display='none';document.getElementById('reveal-empty').style.display='flex'"/>
       <div class="ph-empty" id="reveal-empty" style="display:none">
         <div style="font-size:44px;margin-bottom:8px">🎁</div>
@@ -245,7 +245,7 @@ canvas#fw{position:fixed;inset:0;pointer-events:none;display:none;z-index:999;}
       </div>
     </div>
     <p class="reveal-note">Happy Birthday! 🎂<br>Semoga selalu bahagia ✨</p>
-    <button class="btn-restart" onclick="restartAll()">[ ↺ Ulangi ]</button>
+    <button class="btn-restart" onclick="restartAll()">[ Ulangi ]</button>
   </div>
 </div>
 
